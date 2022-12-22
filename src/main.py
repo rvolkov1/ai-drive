@@ -6,8 +6,8 @@ import datetime
 class app_window(pyglet.window.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
-        self.drawLines = True
-        self.drawSprites = False
+        self.drawLines = False
+        self.drawSprites = True
         self.init_objects()
 
     def init_objects(self):
