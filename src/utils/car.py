@@ -97,18 +97,22 @@ class Car(pyglet.sprite.Sprite):
         # get 4 line segments which represent the car
         car_lines = []
 
+        # make hitbox more lenient
+        hitbox_padding = 2
+        hitbox_width = self.height/2 - hitbox_padding
+        hitbox_height = self.width/2 - hitbox_padding
 
-        top_left_x = self.x - self.height/2
-        top_left_y = self.y + self.width/2
+        top_left_x = self.x - hitbox_width
+        top_left_y = self.y + hitbox_height
 
-        top_right_x = self.x + self.height/2
-        top_right_y = self.y + self.width/2
+        top_right_x = self.x + hitbox_width
+        top_right_y = self.y + hitbox_height
 
-        bot_left_x = self.x - self.height/2
-        bot_left_y = self.y - self.width/2
+        bot_left_x = self.x - hitbox_width
+        bot_left_y = self.y - hitbox_height
 
-        bot_right_x = self.x + self.height/2
-        bot_right_y = self.y - self.width/2
+        bot_right_x = self.x + hitbox_width
+        bot_right_y = self.y - hitbox_height
 
 
         new_top_left = self.rotate_point((top_left_x, top_left_y))

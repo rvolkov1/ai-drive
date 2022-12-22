@@ -1,4 +1,5 @@
 import math
+import pyglet
 
 class Path():
     def __init__(self, winWidth, winHeight, startX, startY):
@@ -17,9 +18,11 @@ class Path():
         self.border_segments.append((start, end))
 
     def get_middle_of_tile(self, location, direction):
-        print(self.startX, location[0])
-        x = location[0] + direction[0] * self.trackWidth + 15.5
-        y = location[1] + direction[1] * self.trackWidth - 15.5
+        # pyglet draws stuff off by 15.5 in each direction for some reason
+        x = location[0] + direction[0] * self.trackWidth/2 - 15.5
+        y = location[1] + direction[1] * self.trackWidth/2 - 15.5
+
+
         return (x, y, direction)
         
 
@@ -140,6 +143,58 @@ class Path():
                 result = self.intersect(entity_line, border_segment)
                 if (result != None):
                     return True
+
+    def get_road_sprites(self, batch=None, group=None):
+        spritesheet = pyglet.image.load('assets/spritesheet_tiles.png')
+        images = []
+        road_sprites = []
+        
+        images.append(spritesheet.get_region(640, spritesheet.height-1664, 128, 128))
+        images.append(spritesheet.get_region(640, spritesheet.height-1664 - 128, 128, 128))
+
+        images.append(spritesheet.get_region(640, spritesheet.height-1664 + 128, 128, 128))
+        images.append(spritesheet.get_region(640, spritesheet.height-1664 + 128 * 3, 128, 128))
+        images.append(spritesheet.get_region(640 - 128 * 2, spritesheet.height-1664 + 128 * 3, 128, 128))
+        images.append(spritesheet.get_region(640 - 128 * 2, spritesheet.height-1664 + 128, 128, 128))
+        images.append(spritesheet.get_region(0, 0, 128, 128))
+
+
+        for image in images:
+            image.anchor_x = self.trackWidth // 2
+            image.anchor_y = self.trackWidth // 2
+
+        for tile in self.tiles:
+            # i hate everything about this
+            if (tile[0] == "forward" and tile[1][2][0] == 0):
+                new_tile_img = images[1]
+            elif (tile[0] == "forward" and tile[1][2][0] != 0):
+                new_tile_img = images[0]
+            elif (tile[0] == 'right' and tile[1][2][1] == 1):
+                new_tile_img = images[2]
+            elif (tile[0] == 'right' and tile[1][2][1] == -1):
+                new_tile_img = images[4]
+            elif (tile[0] == 'left' and tile[1][2][1] == -1):
+                new_tile_img = images[5]
+            elif (tile[0] == 'left' and tile[1][2][1] == 1):
+                new_tile_img = images[3]
+            elif (tile[0] == 'right' and tile[1][2][0] == -1):
+                new_tile_img = images[5]
+            elif (tile[0] == 'right' and tile[1][2][0] == 1):
+                new_tile_img = images[3]
+            elif (tile[0] == 'left' and tile[1][2][0] == 1):
+                new_tile_img = images[4]
+            elif (tile[0] == 'left' and tile[1][2][0] == -1):
+                new_tile_img = images[2]
+            else:
+                # something is wrong
+                new_tile_img = images[6]
+
+            new_tile = pyglet.sprite.Sprite(new_tile_img, tile[1][0], tile[1][1], batch=batch, group=group)
+            new_tile.scale = self.trackWidth/128
+            new_tile.rotation = 0
+            road_sprites.append(new_tile)
+
+        return road_sprites
 
     def intersect(self, line1, line2):
         # algorithm inspired by kylemcdonald
