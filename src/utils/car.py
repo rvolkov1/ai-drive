@@ -22,6 +22,21 @@ class Car(pyglet.sprite.Sprite):
         self.x += self.dx * dt
         self.y += self.dy * dt
             
+        self.keyboard_input(keys, dt)
+
+        self.apply_drag(dt)
+        self.apply_traction(dt)
+        self.apply_rotation(keys, dt)
+
+    def ai_input(self, dt):
+        inputs = self.get_sensor_data()
+
+    # def get_sensor_data():
+    #     # shoot a bunch of lines out of the car and return the distance until they hit a border wall
+
+        
+
+    def keyboard_input(self, keys, dt):
         if (keys[pyglet.window.key.UP]):
             self.dx += math.cos(math.radians(self.rotation)) * self.speed * dt
             self.dy += -math.sin(math.radians(self.rotation)) * self.speed * dt
@@ -29,11 +44,7 @@ class Car(pyglet.sprite.Sprite):
             self.dx += -math.cos(math.radians(self.rotation)) * self.speed * dt
             self.dy += math.sin(math.radians(self.rotation)) * self.speed * dt
 
-        self.apply_drag(dt)
-        self.apply_traction(dt)
-        self.apply_rotation(keys, dt)
 
-        
     def apply_rotation(self, keys, dt):
         #if (self.dx <= 1 and self.dy <= 1): return
 

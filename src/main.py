@@ -1,7 +1,6 @@
 import pyglet
 from aiDrive.src.utils.car import Car
 from aiDrive.src.utils.path import Path
-import datetime
 
 class app_window(pyglet.window.Window):
     def __init__(self, width, height):
@@ -30,7 +29,6 @@ class app_window(pyglet.window.Window):
         if (self.drawSprites):
             self.road_sprites = self.path.get_road_sprites(batch=self.batch, group=self.road_group)
 
-            
         if (self.drawLines):
             for line in self.path.border_segments:
                 self.barrier_lines.append(pyglet.shapes.Line(line[0][0], line[0][1], line[1][0], line[1][1], color=color, batch=self.batch, group=self.road_group))
@@ -61,11 +59,6 @@ class app_window(pyglet.window.Window):
 
             if (self.path.check_border_collision(car_lines) != None):
                 car.isWrecked = True
-
-
-
-                
-
 
     def on_key_press(self, symbol, modifiers):
         self.keys[symbol] = True
