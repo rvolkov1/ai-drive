@@ -31,9 +31,13 @@ class Car(pyglet.sprite.Sprite):
     def ai_input(self, dt):
         inputs = self.get_sensor_data()
 
-    # def get_sensor_data():
-    #     # shoot a bunch of lines out of the car and return the distance until they hit a border wall
+    def get_sensor_data(self):
+        # shoot a 8 lines out at interval of pi/4 radians and get the distance of the closest border they intersect
 
+        curr_angle = math.radians(self.rotation)
+
+        for i in range(curr_angle, curr_angle + math.pi * 2, math.pi/4):
+            
         
 
     def keyboard_input(self, keys, dt):
