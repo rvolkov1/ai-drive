@@ -10,6 +10,7 @@ class Path():
         self.startY = startY
         self.tiles = []
         self.border_segments = []
+        self.checkpoint_lines = []
 
         self.createPath()
 
@@ -136,13 +137,15 @@ class Path():
             else:
                 raise Exception("undefined direction")
 
+            self.checkpoint_lines.append(((curr_right_x, curr_right_y), (curr_left_x, curr_left_y)))
+
 
     def check_border_collision(self, entity_lines):
         for entity_line in entity_lines:
             for border_segment in self.border_segments:
                 result = self.intersect(entity_line, border_segment)
                 if (result != None):
-                    return True
+                    return result
 
     def get_road_sprites(self, batch=None, group=None):
         spritesheet = pyglet.image.load('assets/spritesheet_tiles.png')
@@ -215,23 +218,4 @@ class Path():
         y = y1 + ua * (y2-y1)
         return (x,y)
 
-    # def line_intersection(self, line1, line2):
-    #     # line: ((startx, endx), (startY, endY))
-    #     dx = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-    #     dy = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
 
-    #     def determinant(a, b):
-    #         return a[0] * b[1] - a[1] * b[0]
-
-    #     div = determinant(dx, dy)
-        
-    #     if div == 0:
-    #         # no intersection
-    #         return False
-
-    #     print(div)
-
-    #     d = (determinant(*line1), determinant(*line2))
-    #     x = determinant(d, dx) / div
-    #     y = determinant(d, dy) / div
-    #     return (x, y)

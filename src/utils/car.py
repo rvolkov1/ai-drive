@@ -1,8 +1,9 @@
 import pyglet
 import math
+import numpy as np
 
 class Car(pyglet.sprite.Sprite):
-    def __init__(self, batch=None, group=None):
+    def __init__(self, network=None, batch=None, group=None):
         car_img = pyglet.image.load("assets/cars.png").get_region(241, 0, 72, 39)
         car_img.anchor_x = car_img.width // 2
         car_img.anchor_y = car_img.height // 2
@@ -17,28 +18,79 @@ class Car(pyglet.sprite.Sprite):
         self.rotation_speed = 150
         self.rotation = -90
         self.isWrecked = False
+        self.sensor_rays = []
+        self.intersections = []
+        self.next_checkpoint = 0
+        self.num_laps = 0
 
-    def update(self, keys, dt):
+
+    def update(self, keys, path, dt):
         self.x += self.dx * dt
         self.y += self.dy * dt
             
         self.keyboard_input(keys, dt)
+        self.ai_input(path, dt)
+        self.update_checkpoints(path)
 
         self.apply_drag(dt)
         self.apply_traction(dt)
         self.apply_rotation(keys, dt)
 
-    def ai_input(self, dt):
-        inputs = self.get_sensor_data()
+    def update_checkpoints(self, path):
+        curr_checkpoint_line = path.checkpoint_lines[self.next_checkpoint]
 
-    def get_sensor_data(self):
+        for line in self.calculate_car_lines():
+            if (path.intersect(line, curr_checkpoint_line)):
+                if (self.next_checkpoint < len(path.checkpoint_lines)-1):
+                    self.next_checkpoint += 1
+                else:
+                    self.num_laps += 1
+                    self.next_checkpoint = 0
+                print(self.next_checkpoint)
+                return
+
+    def calculate_fitness(self, path):
+        point_1, point_2 = path.checkpoint_lines[self.next_checkpoint]
+        mid_x = (point_1[0] + point_2[0]) / 2
+        mid_y = (point_1[1] + point_2[1]) / 2
+
+        distance_to_next_checkpoint = math.dist((self.x, self.y), (mid_x, mid_y))
+
+        return self.num_laps * len(path.checkpoint_lines) * path.trackWidth + self.next_checkpoint * path.trackWidth - distance_to_next_checkpoint
+
+    def ai_input(self, path, dt):
+        inputs = self.get_sensor_data(path)
+
+    def get_sensor_data(self, path):
         # shoot a 8 lines out at interval of pi/4 radians and get the distance of the closest border they intersect
 
-        curr_angle = math.radians(self.rotation)
+        ray_length = 1000 # must be longer than any distance on the screen
+        self.intersections = []
+        self.sensor_rays = []
 
-        for i in range(curr_angle, curr_angle + math.pi * 2, math.pi/4):
+        rotation = - self.rotation
+
+        for angle in np.arange(rotation, rotation + 360, 10):
+            theta = math.radians(angle)
+            x_sign = -1 if math.cos(theta) >= 0 else 1
+            y_sign = -1 if math.sin(theta) >= 0 else 1
+
+            line = ((self.x, self.y), (self.x + ray_length * x_sign, self.y + ray_length * abs(math.tan(theta)) * y_sign))
+            self.sensor_rays.append(pyglet.shapes.Line(line[0][0], line[0][1], line[1][0], line[1][1]))
+
+            closest_intersection = None
+
+            for line_segment in path.border_segments:
+                intersection = path.check_border_collision([line])
+
+                if (intersection == None): continue
+                if (closest_intersection == None or math.floor(math.dist(intersection, (self.x, self.y))) < math.floor(closest_intersection)):
+                    closest_intersection = math.floor(math.dist(intersection, (self.x, self.y)))
             
-        
+            self.intersections.append(intersection)
+
+        return self.intersections
+
 
     def keyboard_input(self, keys, dt):
         if (keys[pyglet.window.key.UP]):
@@ -59,7 +111,7 @@ class Car(pyglet.sprite.Sprite):
 
 
     def apply_traction(self, dt):
-                # traction forces
+        # traction forces
         moving_direction = math.atan2(self.dy, self.dx)
         #if (moving_direction < 0): moving_direction = abs(moving_direction) + math.pi
 
@@ -148,7 +200,6 @@ class Car(pyglet.sprite.Sprite):
         # car_lines.append(((self.x + self.height/2, self.y - self.width/2), (self.x + self.height/2, self.y + self.width/2)))
 
         return car_lines
-    
 
         
 
