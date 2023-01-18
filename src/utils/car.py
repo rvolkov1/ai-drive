@@ -22,6 +22,7 @@ class Car(pyglet.sprite.Sprite):
         self.intersections = []
         self.next_checkpoint = 0
         self.num_laps = 0
+        self.network = network
 
 
     def update(self, keys, path, dt):
@@ -56,7 +57,7 @@ class Car(pyglet.sprite.Sprite):
 
         distance_to_next_checkpoint = math.dist((self.x, self.y), (mid_x, mid_y))
 
-        return self.num_laps * len(path.checkpoint_lines) * path.trackWidth + self.next_checkpoint * path.trackWidth - distance_to_next_checkpoint
+        self.network.fitness = self.num_laps * len(path.checkpoint_lines) * path.trackWidth + self.next_checkpoint * path.trackWidth - distance_to_next_checkpoint
 
     def ai_input(self, path, dt):
         inputs = self.get_sensor_data(path)
