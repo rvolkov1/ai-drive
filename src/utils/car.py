@@ -29,13 +29,13 @@ class Car(pyglet.sprite.Sprite):
         self.x += self.dx * dt
         self.y += self.dy * dt
             
-        self.keyboard_input(keys, dt)
+        # self.keyboard_input(keys, dt)
         self.ai_input(path, dt)
         self.update_checkpoints(path)
 
         self.apply_drag(dt)
         self.apply_traction(dt)
-        self.apply_rotation(keys, dt)
+        # self.apply_rotation(keys, dt)
 
     def update_checkpoints(self, path):
         curr_checkpoint_line = path.checkpoint_lines[self.next_checkpoint]
@@ -47,7 +47,6 @@ class Car(pyglet.sprite.Sprite):
                 else:
                     self.num_laps += 1
                     self.next_checkpoint = 0
-                print(self.next_checkpoint)
                 return
 
     def calculate_fitness(self, path):
@@ -61,6 +60,18 @@ class Car(pyglet.sprite.Sprite):
 
     def ai_input(self, path, dt):
         inputs = self.get_sensor_data(path)
+        inputs = self.flatten_inputs(inputs)
+
+        if inputs.shape != (72,): return
+        outputs = self.network.forward_propagation(inputs)
+
+        direction = 0.5 - outputs[0]
+
+        self.dx += direction * math.cos(math.radians(self.rotation)) * self.speed * dt
+        self.dy += - direction * math.sin(math.radians(self.rotation)) * self.speed * dt
+
+    def flatten_inputs(self, inputs):
+        return np.asarray(inputs).flatten()
 
     def get_sensor_data(self, path):
         # shoot a 8 lines out at interval of pi/4 radians and get the distance of the closest border they intersect

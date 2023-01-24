@@ -5,7 +5,7 @@ from aiDrive.src.utils.path import Path
 class app_window(pyglet.window.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
-        self.drawLines = True
+        self.drawLines = False
         self.drawSprites = True
         self.cars = []
         self.keys = pyglet.window.key.KeyStateHandler()
@@ -17,7 +17,6 @@ class app_window(pyglet.window.Window):
 
 
     def create_new_generation(self, neural_networks):
-        print("bruh")
         self.cars = []
         self.keys = pyglet.window.key.KeyStateHandler()
         self.path = Path(self.width, self.height, 100, 100)
@@ -52,6 +51,7 @@ class app_window(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         self.batch.draw()    
+        print("cars len", len(self.cars))
         if self.drawLines:
             for car in self.cars:
                 for line in car.sensor_rays:
@@ -63,7 +63,6 @@ class app_window(pyglet.window.Window):
     def update(self, dt):
         count = 0
         for car in self.cars:
-            print(car.calculate_fitness(self.path))
             if (not car.isWrecked):
                 car.update(self.keys, self.path, dt)
             
