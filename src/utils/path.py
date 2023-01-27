@@ -139,10 +139,11 @@ class Path():
 
             self.checkpoint_lines.append(((curr_right_x, curr_right_y), (curr_left_x, curr_left_y)))
 
-
     def check_border_collision(self, entity_lines):
         for entity_line in entity_lines:
             for border_segment in self.border_segments:
+                # output = funcs.get_lines_intersection(border_segment[0], border_segment[1], entity_line[0], entity_line[1])
+                # print(output)
                 result = self.intersect(entity_line, border_segment)
                 if (result != None):
                     return result

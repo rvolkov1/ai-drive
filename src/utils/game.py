@@ -51,7 +51,7 @@ class app_window(pyglet.window.Window):
     def on_draw(self):
         self.clear()
         self.batch.draw()    
-        print("cars len", len(self.cars))
+        # print("cars len", len(self.cars))
         if self.drawLines:
             for car in self.cars:
                 for line in car.sensor_rays:
@@ -84,3 +84,5 @@ class app_window(pyglet.window.Window):
 
     def on_key_release(self, symbol, modifiers):
         self.keys.pop(symbol)
+    
+

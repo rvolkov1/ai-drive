@@ -62,13 +62,15 @@ class Car(pyglet.sprite.Sprite):
         inputs = self.get_sensor_data(path)
         inputs = self.flatten_inputs(inputs)
 
-        if inputs.shape != (72,): return
+        if inputs.shape != (12,): return
         outputs = self.network.forward_propagation(inputs)
 
         direction = 0.5 - outputs[0]
 
         self.dx += direction * math.cos(math.radians(self.rotation)) * self.speed * dt
         self.dy += - direction * math.sin(math.radians(self.rotation)) * self.speed * dt
+
+        self.rotation += outputs[1] * self.rotation_speed * dt
 
     def flatten_inputs(self, inputs):
         return np.asarray(inputs).flatten()
@@ -82,7 +84,7 @@ class Car(pyglet.sprite.Sprite):
 
         rotation = - self.rotation
 
-        for angle in np.arange(rotation, rotation + 360, 10):
+        for angle in np.arange(rotation, rotation + 360, 60):
             theta = math.radians(angle)
             x_sign = -1 if math.cos(theta) >= 0 else 1
             y_sign = -1 if math.sin(theta) >= 0 else 1

@@ -3,23 +3,27 @@ import time
 from aiDrive.src.utils.game import app_window
 from aiDrive.src.utils.genetic_algo import GeneticAlgorithm
 
-NUM_NETWORKS = 50
+NUM_NETWORKS = 10
 NUM_GENERATIONS = 100
 
-def train_ai(window, num_generations):
-    # time.sleep(10)
-    # genetic_algo.update_networks()
-    pass
+
+
+def initialize_new_generation(dt=None, first=False):
+    if not first:
+        for car in window.cars:
+            car.calculate_fitness(window.path)
+            genetic_algo.update_networks()
+    
+    window.create_new_generation(genetic_algo.networks)
 
 
 if __name__ == '__main__':
     width, height = 800, 500
     window = app_window(width=width, height=height)
-    # train_ai(window, NUM_GENERATIONS)
 
     genetic_algo = GeneticAlgorithm(NUM_NETWORKS)
-    # for generation in range(num_generations):
-    window.create_new_generation(genetic_algo.networks)
 
-    pyglet.clock.schedule_interval(window.update, 1/60.0)  # update at 60Hz
-    pyglet.app.run()
+    initialize_new_generation(first=True)
+    pyglet.clock.schedule_interval(initialize_new_generation, 5)
+    pyglet.clock.schedule_interval(window.update, 1/60.0)
+    pyglet.app.run()  

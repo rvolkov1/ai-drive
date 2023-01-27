@@ -29,11 +29,11 @@ class GeneticAlgorithm():
             parent1 = self.select_parent(elite_networks)
             parent2 = self.select_parent(elite_networks)
 
-            # child_genes = self.get_child_genes(parent1, parent2)
-            child_genes = parent1.weights
+            child_genes = self.get_child_genes(parent1, parent2)
+            # child_genes = parent1.weights
 
             # mutate genes
-            child_genes = self.mutate_genes(child_genes)
+            # child_genes = self.mutate_genes(child_genes)
 
             # unflatten weights
             # child_genes = self.unflatten_weights(child_genes)

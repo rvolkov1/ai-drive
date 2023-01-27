@@ -2,8 +2,8 @@ import numpy as np
 
 class NeuralNetwork():
     def __init__(self, layers=None, weights=None):
-        self.inputs = 72
-        self.hidden_layer_neurons = 20
+        self.inputs = 12
+        self.hidden_layer_neurons = 8
         self.outputs = 2
         self.fitness = -1000
         self.weights = None

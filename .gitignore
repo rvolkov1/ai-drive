@@ -1,2 +1,5 @@
 assets/kenney_racingpack_updated
 assets/*.xml
+src/utils/output.txt
+src/utils/functions.*
+src/utils/__*
