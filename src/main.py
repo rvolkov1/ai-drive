@@ -6,8 +6,6 @@ from aiDrive.src.utils.genetic_algo import GeneticAlgorithm
 NUM_NETWORKS = 10
 NUM_GENERATIONS = 100
 
-
-
 def initialize_new_generation(dt=None, first=False):
     if not first:
         for car in window.cars:

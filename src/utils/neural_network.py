@@ -2,9 +2,7 @@ import numpy as np
 
 class NeuralNetwork():
     def __init__(self, layers=None, weights=None):
-        self.inputs = 12
-        self.hidden_layer_neurons = 8
-        self.outputs = 2
+        self.layers = [12, 8, 2]
         self.fitness = -1000
         self.weights = None
         self.activations = []
@@ -13,13 +11,14 @@ class NeuralNetwork():
     def set_weights(self):
         if self.weights != None: return
         self.weights = []
+            
+        for i, layer in enumerate(self.layers): 
+            self.weights.append(np.random.randn(layer, layers[i+1]))
+            if (i == len(self.layers) - 2): break
 
-        self.weights.append(np.random.randn(self.inputs, self.hidden_layer_neurons))
-        self.weights.append(np.random.randn(self.hidden_layer_neurons, self.outputs))
-        self.weights
 
     def forward_propagation(self, input):
-        # hidden
+        # hidden layer
         z1 = np.dot(input, self.weights[0])
         a1 = self.sigmoid(z1)
         

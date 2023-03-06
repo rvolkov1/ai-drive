@@ -12,6 +12,7 @@ class GeneticAlgorithm():
         self.networks = []
         self.filename = "model_weights.csv"
         self.elite_proportion = 0.2
+        self.mutation_chace = 1/20
 
         for i in range(num_networks):
             self.networks.append(NeuralNetwork())
@@ -36,7 +37,7 @@ class GeneticAlgorithm():
             # child_genes = self.mutate_genes(child_genes)
 
             # unflatten weights
-            # child_genes = self.unflatten_weights(child_genes)
+            #child_genes = self.unflatten_weights(child_genes)
 
             child_networks.append(NeuralNetwork(layers=layers, weights=child_genes))
 
@@ -55,48 +56,34 @@ class GeneticAlgorithm():
         return random.choice(parents)
 
     def get_child_genes(self, parent1, parent2):
-        # for now just return whatever
 
-        return 
-        # flatten weights
-        # p1_genes = self.flatten_weights(parent1.weights)
-        # p2_genes = self.flatten_weights(parent2.weights)
+        child_genes = []
 
-        # first_crossover = random.randint(0, len(p1_genes) - 1)
-        # second_crossover = first_crossover
-        # while second_crossover == first_crossover: second_crossover = random.randint(0, len(p1_genes) - 1)
+        #crossover
+        for i in range (len(p1.weights)):
+            p1_genes = 
+            
+                
+        #child_genes = parent1.weights # temporary solution
+
+        #unflatten genes
 
 
-        # print("p1_genes:", len(p1_genes[2]))
-        # child_genes = []
-        # child_genes += p1_genes[0:first_crossover] if random.randint(0, 1) == 0 else p2_genes[0:first_crossover]
 
-        # child_genes += p1_genes[first_crossover: second_crossover] if random.randint(0, 1) == 0 else p2_genes[first_crossover: second_crossover]
+        if (len(child_genes) != len(p1_genes) or len(child_genes) != len(p2_genes)):
+            raise Exception("you are dumb")
 
-        # child_genes += p1_genes[second_crossover: len(p1_genes)] if random.randint(0, 1) == 0 else p2_genes[second_crossover: len(p1_genes)]
+        return child_genes
 
-        # if (len(child_genes) != len(p1_genes) or len(child_genes) != len(p2_genes)):
-        #     raise Exception("you are dumb")
+
 
     def mutate_genes(self, weights):
         # TODO implement mutation
         return weights
 
     def flatten_weights(self, weights):
-        weights = np.array(weights)
-        weights.flatten()
+        for i ,layer in enumerate(weights):
+            weights[i] = layer.flatten()
+
         return weights
-
-    def unflatten_weights(self, weights):
-        new_list = []
-        curr_index = 0
-
-        for layer in layers:
-            intermediary_list = []
-            for i in range(layer):
-                intermediary_list.append(weights[curr_index])
-                curr_index += 1
-            new_list.append(intermediary_list)
-
-        return new_list
 
