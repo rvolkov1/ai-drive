@@ -12,9 +12,9 @@ class NeuralNetwork():
         if self.weights != None: return
         self.weights = []
             
-        for i, layer in enumerate(self.layers): 
-            self.weights.append(np.random.randn(layer, layers[i+1]))
-            if (i == len(self.layers) - 2): break
+        print("layers len :", len(self.layers) -1)
+        for i in range(len(self.layers) -1): 
+            self.weights.append(np.random.randn(self.layers[i], self.layers[i+1]))
 
 
     def forward_propagation(self, input):
