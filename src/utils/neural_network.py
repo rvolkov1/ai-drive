@@ -4,15 +4,15 @@ class NeuralNetwork():
     def __init__(self, layers=None, weights=None):
         self.layers = [12, 8, 2]
         self.fitness = -1000
-        self.weights = None
+        self.weights = weights
         self.activations = []
         self.set_weights()
 
     def set_weights(self):
         if self.weights != None: return
+        print("weights set")
         self.weights = []
             
-        print("layers len :", len(self.layers) -1)
         for i in range(len(self.layers) -1): 
             self.weights.append(np.random.randn(self.layers[i], self.layers[i+1]))
 

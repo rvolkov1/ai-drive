@@ -11,8 +11,10 @@ class GeneticAlgorithm():
         self.num_networks = num_networks
         self.networks = []
         self.filename = "model_weights.csv"
-        self.elite_proportion = 0.2
-        self.mutation_chace = 1/20
+        self.elite_proportion = 0.5
+        self.crossover_chance = 0.8
+        self.mutation_chance = 1/20
+
 
         for i in range(num_networks):
             self.networks.append(NeuralNetwork())
@@ -55,21 +57,21 @@ class GeneticAlgorithm():
         child2_genes = []
 
 
-        print("parent weights len: ", len(parent1.weights) -1)
         #crossover
         for i in range(0, len(parent1.weights)):
-            if random.random() < self.mutation_chace:
+            if random.random() < self.crossover_chance:
                 w1_flat = parent1.weights[i].flatten()
                 w2_flat = parent2.weights[i].flatten()
 
-                print(type(w1_flat))
                 crossover_point = random.randint(0, w1_flat.size)
+
 
                 w1 = np.concatenate((w1_flat[:crossover_point], w2_flat[crossover_point:]))
                 w2 = np.concatenate((w2_flat[:crossover_point], w1_flat[crossover_point:]))
 
-                w1.reshape(np.shape(parent1.weights[i]))
-                w2.reshape(np.shape(parent2.weights[i]))
+
+                w1 = w1.reshape(np.shape(parent1.weights[i]))
+                w2 = w2.reshape(np.shape(parent2.weights[i]))
 
                 child1_genes.append(w1)
                 child2_genes.append(w2)
@@ -77,14 +79,22 @@ class GeneticAlgorithm():
             else:
                 child1_genes.append(parent1.weights[i])
                 child2_genes.append(parent2.weights[i])
-            
-                
+
+        for i in range(len(child1_genes)):
+            row, col = np.shape(child1_genes[i])
+            mutation_chance = 1/(row * col)
+            for r in range(row):
+                for c in range(col):
+                    if (random.random() < mutation_chance):
+                        child1_genes[i][r, c] = random.random()
+
+                    if (random.random() < mutation_chance):
+                        child2_genes[i][r, c] = random.random()
+
+
+
         if (len(child1_genes) != len(child2_genes) or len(child1_genes) != len(parent1.weights) or len(child1_genes) != len(parent2.weights)):
-            print("child1 shape 0: ", np.shape(child1_genes[0]))
-            print("child1 shape 1 ", np.shape(child1_genes[1]))
-            print("child2 shape 0: ", np.shape(child2_genes[0]))
-            print("child2 shape 1 ", np.shape(child2_genes[1]))
-            raise Exception("you are dumb")
+            raise Exception("child gene length mismatch")
 
         return child1_genes, child2_genes
 
