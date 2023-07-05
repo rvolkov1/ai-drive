@@ -41,6 +41,11 @@ class Car(pyglet.sprite.Sprite):
             self.curr_tile = curr_tile
             self.checkpoints_passed += 1
 
+            if self.direction_idx == 0:
+                self.direction_idx = 3
+            else:
+                self.direction_idx -= 1
+
             while (map.tilemap[curr_tile[0] + self.direction_vector[self.direction_idx][0]][curr_tile[1] + self.direction_vector[self.direction_idx][1]] == 0):
                 self.direction_idx += 1
                 self.direction_idx %= 4
@@ -50,14 +55,14 @@ class Car(pyglet.sprite.Sprite):
         self.x += self.dx * dt
         self.y += self.dy * dt
             
-        self.keyboard_input(keys, dt)
-        #self.ai_input(map, dt)
+        #self.keyboard_input(keys, dt)
+        self.ai_input(map, dt)
         #self.update_checkpoints(map)
         self.calculate_fitness(map)
 
         self.apply_drag(dt)
         self.apply_traction(dt)
-        self.apply_rotation(keys, dt)
+        #self.apply_rotation(keys, dt)
 
     def check_if_wrecked(self, map):
         if (not map.in_bounds(self.get_vertices())):
@@ -71,8 +76,10 @@ class Car(pyglet.sprite.Sprite):
 
         d = math.dist((self.x, self.y), next_tile_center)
 
+        #print("d", d)
         self.network.fitness = self.checkpoints_passed * 64
         print(self.network.fitness)
+        #print(self.network.fitness)
 
 
         #self.network.fitness = math.dist((self.x, self.y), (self.startX, self.startY))
