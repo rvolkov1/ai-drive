@@ -2,7 +2,7 @@ import numpy as np
 
 class NeuralNetwork():
     def __init__(self, layers=None, weights=None):
-        self.layers = [12, 8, 2]
+        self.layers = [9, 8, 2]
         self.fitness = -1000
         self.weights = weights
         self.activations = []
@@ -10,7 +10,6 @@ class NeuralNetwork():
 
     def set_weights(self):
         if self.weights != None: return
-        print("weights set")
         self.weights = []
             
         for i in range(len(self.layers) -1): 

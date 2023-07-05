@@ -11,10 +11,9 @@ class GeneticAlgorithm():
         self.num_networks = num_networks
         self.networks = []
         self.filename = "model_weights.csv"
-        self.elite_proportion = 0.5
+        self.elite_proportion = 0.2
         self.crossover_chance = 0.8
         self.mutation_chance = 1/20
-
 
         for i in range(num_networks):
             self.networks.append(NeuralNetwork())
@@ -22,6 +21,16 @@ class GeneticAlgorithm():
     def update_networks(self):
         # sort networks by fitness
         self.sort_networks_by_fitness()
+
+        print("before")
+        for network in self.networks:
+            print(network.fitness)
+
+
+        if (self.networks[0].fitness < 0):
+            # make shit random for now
+            self.networks = [NeuralNetwork() for i in range(len(self.networks))]
+            return
 
         # get top 10 
         elite_networks = self.get_elite_parents()

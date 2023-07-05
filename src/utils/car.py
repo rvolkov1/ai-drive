@@ -9,60 +9,86 @@ class Car(pyglet.sprite.Sprite):
         car_img.anchor_y = car_img.height // 2
         super().__init__(car_img, batch=batch, group=group)
 
-        self.x = 130
-        self.y = 100
+        self.x = 100
+        self.y = 200
+        self.startX = 100
+        self.startY = 200
         self.dx = 0
         self.dy = 0
+        #self.width = car_img.width
+        #self.height = car_img.height
         self.speed = 300
         self.scale = 0.5
         self.rotation_speed = 150
         self.rotation = -90
-        self.isWrecked = False
+        self.wrecked = False
         self.sensor_rays = []
-        self.intersections = []
-        self.next_checkpoint = 0
-        self.num_laps = 0
+        self.direction_vector = ((-1,0), (0, 1), (1,0), (0, -1))
+        self.direction_idx = 0
+        self.curr_tile = None
+        self.checkpoints_passed = 0
         self.network = network
 
 
-    def update(self, keys, path, dt):
+    def update(self, keys, map, dt):
+        if (self.wrecked or self.check_if_wrecked(map)): return
+
+        curr_tile = map.idx_from_pt((self.x, self.y))
+
+        if (self.curr_tile is None):
+            self.curr_tile = curr_tile
+        elif (curr_tile == (self.curr_tile[0] + self.direction_vector[self.direction_idx][0], self.curr_tile[1] + self.direction_vector[self.direction_idx][1])):
+            self.curr_tile = curr_tile
+            self.checkpoints_passed += 1
+
+            while (map.tilemap[curr_tile[0] + self.direction_vector[self.direction_idx][0]][curr_tile[1] + self.direction_vector[self.direction_idx][1]] == 0):
+                self.direction_idx += 1
+                self.direction_idx %= 4
+
+            #print(self.direction_idx)
+
         self.x += self.dx * dt
         self.y += self.dy * dt
             
-        # self.keyboard_input(keys, dt)
-        self.ai_input(path, dt)
-        self.update_checkpoints(path)
+        self.keyboard_input(keys, dt)
+        #self.ai_input(map, dt)
+        #self.update_checkpoints(map)
+        self.calculate_fitness(map)
 
         self.apply_drag(dt)
         self.apply_traction(dt)
-        # self.apply_rotation(keys, dt)
+        self.apply_rotation(keys, dt)
 
-    def update_checkpoints(self, path):
-        curr_checkpoint_line = path.checkpoint_lines[self.next_checkpoint]
+    def check_if_wrecked(self, map):
+        if (not map.in_bounds(self.get_vertices())):
+            self.wrecked = True
 
-        for line in self.calculate_car_lines():
-            if (path.intersect(line, curr_checkpoint_line)):
-                if (self.next_checkpoint < len(path.checkpoint_lines)-1):
-                    self.next_checkpoint += 1
-                else:
-                    self.num_laps += 1
-                    self.next_checkpoint = 0
-                return
+        return self.wrecked
 
-    def calculate_fitness(self, path):
-        point_1, point_2 = path.checkpoint_lines[self.next_checkpoint]
-        mid_x = (point_1[0] + point_2[0]) / 2
-        mid_y = (point_1[1] + point_2[1]) / 2
+    def calculate_fitness(self, map):
+        curr_tile = map.idx_from_pt((self.x, self.y))
+        next_tile_center = map.get_tile_center((curr_tile[0] + self.direction_vector[self.direction_idx][0], curr_tile[1] + self.direction_vector[self.direction_idx][1]))
 
-        distance_to_next_checkpoint = math.dist((self.x, self.y), (mid_x, mid_y))
+        d = math.dist((self.x, self.y), next_tile_center)
 
-        self.network.fitness = self.num_laps * len(path.checkpoint_lines) * path.trackWidth + self.next_checkpoint * path.trackWidth - distance_to_next_checkpoint
+        self.network.fitness = self.checkpoints_passed * 64
+        print(self.network.fitness)
 
-    def ai_input(self, path, dt):
-        inputs = self.get_sensor_data(path)
+
+        #self.network.fitness = math.dist((self.x, self.y), (self.startX, self.startY))
+#        point_1, point_2 = path.checkpoint_lines[self.next_checkpoint]
+#        mid_x = (point_1[0] + point_2[0]) / 2
+#        mid_y = (point_1[1] + point_2[1]) / 2
+#
+        #distance_to_next_checkpoint = math.dist((self.x, self.y), (mid_x, mid_y))
+
+        #self.network.fitness = self.num_laps * len(path.checkpoint_lines) * path.trackWidth + self.next_checkpoint * path.trackWidth - distance_to_next_checkpoint
+
+    def ai_input(self, map, dt):
+        inputs = self.get_sensor_data(map)
         inputs = self.flatten_inputs(inputs)
 
-        if inputs.shape != (12,): return
+        if inputs.shape != (9,): return
         outputs = self.network.forward_propagation(inputs)
 
         direction = 0.5 - outputs[0]
@@ -75,35 +101,30 @@ class Car(pyglet.sprite.Sprite):
     def flatten_inputs(self, inputs):
         return np.asarray(inputs).flatten()
 
-    def get_sensor_data(self, path):
+    def get_sensor_data(self, map):
         # shoot a 8 lines out at interval of pi/4 radians and get the distance of the closest border they intersect
 
-        ray_length = 1000 # must be longer than any distance on the screen
-        self.intersections = []
-        self.sensor_rays = []
+        sensor_data = []
+
+        normalization_factor = max(map.width, map.height) # value to use to normalize all input values to model
+
+        sensor_data.append(self.x / map.width)
+        sensor_data.append(self.y / map.height)
+        sensor_data.append(abs(self.rotation) % 360 / 360)
 
         rotation = - self.rotation
 
         for angle in np.arange(rotation, rotation + 360, 60):
-            theta = math.radians(angle)
-            x_sign = -1 if math.cos(theta) >= 0 else 1
-            y_sign = -1 if math.sin(theta) >= 0 else 1
+            dx = math.cos(math.radians(angle))
+            dy = math.sin(math.radians(angle))
 
-            line = ((self.x, self.y), (self.x + ray_length * x_sign, self.y + ray_length * abs(math.tan(theta)) * y_sign))
-            self.sensor_rays.append(pyglet.shapes.Line(line[0][0], line[0][1], line[1][0], line[1][1]))
+            dist_to_wall = map.dist_to_wall(dx, dy, self.get_vertices(), self.width, self.height, self.rotation)
 
-            closest_intersection = None
+            #print("dist_to_wall", dist_to_wall)
 
-            for line_segment in path.border_segments:
-                intersection = path.check_border_collision([line])
+            sensor_data.append(dist_to_wall / normalization_factor)
 
-                if (intersection == None): continue
-                if (closest_intersection == None or math.floor(math.dist(intersection, (self.x, self.y))) < math.floor(closest_intersection)):
-                    closest_intersection = math.floor(math.dist(intersection, (self.x, self.y)))
-            
-            self.intersections.append(intersection)
-
-        return self.intersections
+        return sensor_data
 
 
     def keyboard_input(self, keys, dt):
@@ -206,6 +227,29 @@ class Car(pyglet.sprite.Sprite):
         car_lines.append((new_top_right, new_bot_right))
         car_lines.append((new_top_left, new_bot_left))
 
+    def get_vertices(self):
+        hitbox_padding = 2
+        hitbox_width = self.height/2 - hitbox_padding
+        hitbox_height = self.width/2 - hitbox_padding
+
+        top_left_x = self.x - hitbox_width
+        top_left_y = self.y + hitbox_height
+
+        top_right_x = self.x + hitbox_width
+        top_right_y = self.y + hitbox_height
+
+        bot_left_x = self.x - hitbox_width
+        bot_left_y = self.y - hitbox_height
+
+        bot_right_x = self.x + hitbox_width
+        bot_right_y = self.y - hitbox_height
+
+
+        new_top_left = self.rotate_point((top_left_x, top_left_y))
+        new_top_right = self.rotate_point((top_right_x, top_right_y))
+        new_bot_left = self.rotate_point((bot_left_x, bot_left_y))
+        new_bot_right = self.rotate_point((bot_right_x, bot_right_y))       
+        return (new_top_left, new_top_right, new_bot_left, new_bot_right)
 
         # car_lines.append(((self.x - self.height/2, self.y - self.width/2), (self.x + self.height/2, self.y - self.width/2)))
         
