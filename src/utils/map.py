@@ -20,7 +20,7 @@ class TileMap():
 
     def idx_from_pt(self, pt):
         return (len(self.tilemap) - 1 - int(pt[1] / self.trackWidth), int(pt[0] / self.trackWidth))
-    
+
     def in_bounds(self, vertices):
         for vertex in vertices:
             normalized_vertex = self.idx_from_pt(vertex)
@@ -47,9 +47,35 @@ class TileMap():
 
         return dist
 
+    def dist_to_next_tile(self, next_tile, pos, center, vertices):
+        dist = 0
+        step_size = 4
+
+        dx = center[0] - pos[0]
+        dy = center[1] - pos[1]
+
+        sum = abs(dx) + abs(dy)
+
+        dx = dx / sum
+        dy = dy / sum
+
+        vertices = list(map(list, vertices))
+        i = 0
+        while(True):
+            for vertex in vertices:
+                normalized_vertex = self.idx_from_pt(vertex)
+                if normalized_vertex == next_tile:
+                    return self.trackWidth - dist
+                else:
+                    vertex[0] += dx * step_size
+                    vertex[1] += dy * step_size
+            dist += step_size
+
+            
+
     def get_tile_center(self, idx):
-        x = idx[0] * self.trackWidth + self.trackWidth / 2
-        y = idx[1] * self.trackWidth + self.trackWidth / 2
+        x = idx[1] * self.trackWidth + self.trackWidth / 2
+        y = self.height - (idx[0] * self.trackWidth + self.trackWidth / 2)
 
         return (x, y)
         

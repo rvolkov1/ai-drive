@@ -60,6 +60,8 @@ class Car(pyglet.sprite.Sprite):
         #self.update_checkpoints(map)
         self.calculate_fitness(map)
 
+        #print(self.network.fitness)
+
         self.apply_drag(dt)
         self.apply_traction(dt)
         #self.apply_rotation(keys, dt)
@@ -72,13 +74,16 @@ class Car(pyglet.sprite.Sprite):
 
     def calculate_fitness(self, map):
         curr_tile = map.idx_from_pt((self.x, self.y))
-        next_tile_center = map.get_tile_center((curr_tile[0] + self.direction_vector[self.direction_idx][0], curr_tile[1] + self.direction_vector[self.direction_idx][1]))
+        next_tile = (curr_tile[0] + self.direction_vector[self.direction_idx][0], curr_tile[1] + self.direction_vector[self.direction_idx][1])
+        next_tile_center = map.get_tile_center(next_tile)
 
-        d = math.dist((self.x, self.y), next_tile_center)
+        #d = math.dist((self.x, self.y), next_tile_center)
 
-        #print("d", d)
-        self.network.fitness = self.checkpoints_passed * 64
-        print(self.network.fitness)
+        dist_to_next = map.dist_to_next_tile(next_tile, (self.x, self.y), next_tile_center, self.get_vertices())
+
+        #print("d", int(dist_to_next))
+        self.network.fitness = self.checkpoints_passed * 64 #+ dist_to_next
+        #print(int(self.network.fitness))
         #print(self.network.fitness)
 
 
@@ -110,7 +115,6 @@ class Car(pyglet.sprite.Sprite):
 
     def get_sensor_data(self, map):
         # shoot a 8 lines out at interval of pi/4 radians and get the distance of the closest border they intersect
-
         sensor_data = []
 
         normalization_factor = max(map.width, map.height) # value to use to normalize all input values to model
@@ -121,7 +125,7 @@ class Car(pyglet.sprite.Sprite):
 
         rotation = - self.rotation
 
-        for angle in np.arange(rotation, rotation + 360, 60):
+        for angle in np.linspace(rotation - 90, rotation + 90, num=6):
             dx = math.cos(math.radians(angle))
             dy = math.sin(math.radians(angle))
 

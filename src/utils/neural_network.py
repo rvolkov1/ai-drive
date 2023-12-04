@@ -13,7 +13,7 @@ class NeuralNetwork():
         self.weights = []
             
         for i in range(len(self.layers) -1): 
-            self.weights.append(np.random.randn(self.layers[i], self.layers[i+1]))
+            self.weights.append(np.random.rand(self.layers[i], self.layers[i+1]))
 
 
     def forward_propagation(self, input):

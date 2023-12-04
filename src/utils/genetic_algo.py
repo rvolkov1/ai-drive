@@ -13,19 +13,22 @@ class GeneticAlgorithm():
         self.filename = "model_weights.csv"
         self.elite_proportion = 0.2
         self.crossover_chance = 0.8
-        self.mutation_chance = 1/20
+        self.mutation_chance = 1/15
+        self.generation_num = 1
 
         for i in range(num_networks):
             self.networks.append(NeuralNetwork())
         
     def update_networks(self):
+        self.generation_num += 1
         # sort networks by fitness
         self.sort_networks_by_fitness()
 
-        print("before")
+        tot_fitness = 0
         for network in self.networks:
-            print(network.fitness)
+            tot_fitness += network.fitness
 
+        print("Generation", self.generation_num, "average fitness:", tot_fitness / len(self.networks))
 
         if (self.networks[0].fitness < 0):
             # make shit random for now
@@ -65,10 +68,10 @@ class GeneticAlgorithm():
         child1_genes = []
         child2_genes = []
 
-
         #crossover
         for i in range(0, len(parent1.weights)):
             if random.random() < self.crossover_chance:
+                print("cross over")
                 w1_flat = parent1.weights[i].flatten()
                 w2_flat = parent2.weights[i].flatten()
 
@@ -88,10 +91,10 @@ class GeneticAlgorithm():
             else:
                 child1_genes.append(parent1.weights[i])
                 child2_genes.append(parent2.weights[i])
-
+        
         for i in range(len(child1_genes)):
             row, col = np.shape(child1_genes[i])
-            mutation_chance = 1/(row * col)
+            mutation_chance = self.mutation_chance
             for r in range(row):
                 for c in range(col):
                     if (random.random() < mutation_chance):
@@ -104,6 +107,9 @@ class GeneticAlgorithm():
 
         if (len(child1_genes) != len(child2_genes) or len(child1_genes) != len(parent1.weights) or len(child1_genes) != len(parent2.weights)):
             raise Exception("child gene length mismatch")
+
+        child1_genes = self.mutate_genes(child1_genes)
+        child2_genes = self.mutate_genes(child2_genes)
 
         return child1_genes, child2_genes
 
